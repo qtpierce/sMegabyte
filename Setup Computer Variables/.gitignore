@@ -1,0 +1,11 @@
+bin/*
+obj/*
+../.vs/*
+*.bin
+*.obj
+*.exe
+*.dll
+*.pch
+*.user
+*.suo
+*.tlb

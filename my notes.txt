@@ -1,0 +1,6 @@
+Use the Windows GitHub program to pull and push changes back to the internet.
+
+Use the thumbdrive directory:  F:\Makers stuff\sMegabyte         as the one source of files.
+
+F:\Makers stuff\sMegabyte    is a clone of the content online in GitHub.
+

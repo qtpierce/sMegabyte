@@ -1,0 +1,12 @@
+[Unit]
+Description=My custom MP3 player
+After=alsa-restore.service
+
+[Service]
+ExecStart=/media/sdcard/my_scripts/BTConnect.sh
+Restart=no
+Type=forking
+
+[Install]
+WantedBy=multi-user.target
+

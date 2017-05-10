@@ -1,0 +1,16 @@
+# File:  myweatherservice.service  is used as part of the system that 
+# automatically starts programs when the Edison powers on.
+# Usage:  copy this file to /etc/systemd/system/multi-user.target.wants/ 
+# directory.
+[Unit]
+Description=My custom weather wget service.
+After=alsa-restore.service
+
+[Service]
+ExecStart=/home/root/myweatherservice_wrapper.sh
+Restart=no
+Type=forking
+
+[Install]
+WantedBy=multi-user.target
+

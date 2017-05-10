@@ -1,0 +1,38 @@
+<uart-configuration name="First configuration">
+   <!-- Put this file in:  Computer\Z812\Phone\Nordic Semiconductor\UART Configurations\ directory. -->	
+   <!-- Attach the phone by USB and tell Android to connect to the computer as an MTP Media device so it will show up as a device you can drag and drop to. -->
+
+   <!-- A configuration must have 9 commands, one for each button.
+        Possible icons are:
+          - LEFT
+          - UP
+          - RIGHT
+          - DOWN
+          - SETTINGS
+          - REW
+          - PLAY
+          - PAUSE
+          - STOP
+          - FWD
+          - INFO
+          - NUMBER_1
+          - NUMBER_2
+          - NUMBER_3
+          - NUMBER_4
+          - NUMBER_5
+          - NUMBER_6
+          - NUMBER_7
+          - NUMBER_8
+          - NUMBER_9 -->
+   <commands length="9">
+      <command active="true" icon="SETTINGS">0</command>
+      <command active="true" icon="UP">w</command>
+      <command active="true" icon="NUMBER_1">1</command>
+      <command active="true" icon="LEFT">a</command>
+      <command active="true" icon="STOP"> </command>
+      <command active="true" icon="RIGHT">d</command>
+      <command/>
+      <command active="true" icon="DOWN">s</command>
+      <command/>
+   </commands>
+</uart-configuration>
