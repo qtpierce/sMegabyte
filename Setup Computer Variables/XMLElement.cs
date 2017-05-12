@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 
 
@@ -10,23 +6,23 @@ namespace SetupComputerVariables
 {
     class XMLElement
     {
-        public XMLElement ()
+        public XMLElement( )
         {
 
         }
 
 
-        public String GetElement (XmlDocument doc, String ElementName)
+        public String GetElement( XmlDocument doc, String ElementName )
         {
-            XmlNode myXNode = doc.SelectSingleNode("//" + ElementName);
+            XmlNode myXNode = doc.SelectSingleNode( "//" + ElementName );
             String ReturnValue;
             ReturnValue = "";
 
             try
             {
-                ReturnValue = myXNode.InnerText.ToString();
+                ReturnValue = myXNode.InnerText.ToString( );
             }
-            catch (Exception e)
+            catch( Exception e )
             {
                 // do nothing.
             }
@@ -34,16 +30,16 @@ namespace SetupComputerVariables
         }
 
 
-        public void SetElement(XmlDocument doc, String ElementName, String ElementValue)
+        public void SetElement( XmlDocument doc, String ElementName, String ElementValue )
         {
             try
             {
                 // Add an element.
-                XmlElement newElem = doc.CreateElement(ElementName);
+                XmlElement newElem = doc.CreateElement( ElementName );
                 newElem.InnerText = ElementValue;
-                doc.DocumentElement.AppendChild(newElem);
+                doc.DocumentElement.AppendChild( newElem );
             }
-            catch (Exception e)
+            catch( Exception e )
             {
                 // do nothing.
             }

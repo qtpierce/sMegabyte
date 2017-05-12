@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.IO;
 
 
@@ -13,40 +9,40 @@ namespace SetupComputerVariables
         private String FileName;
         private String FullPath;
         private String Path;
-        public enum Type {DIRECTORY, PROGRAM};
+        public enum Type{ DIRECTORY, PROGRAM };
         private Type PathType;
         public bool PathExists;
 
 
-        public ResourcePath()
+        public ResourcePath( )
         {
             PathExists = false;
         }
 
 
-        public String GetPath()
+        public String GetPath( )
         {
             return Path;
         }
 
 
-        public String GetFileName()
+        public String GetFileName( )
         {
             return FileName;
         }
 
 
-        public String GetFullPath()
+        public String GetFullPath( )
         {
             return FullPath;
         }
 
 
-        public bool SetFullPath (String myFilePath, bool TestThatPathExists = true)
+        public bool SetFullPath ( String myFilePath, bool TestThatPathExists = true )
         {
-            if (TestThatPathExists == true)
+            if ( TestThatPathExists == true )
             {
-                PathExists = TestFilePathExistance(myFilePath);
+                PathExists = TestFilePathExistance( myFilePath );
             }
             else
             {
@@ -55,19 +51,19 @@ namespace SetupComputerVariables
             String myPath = myFilePath;
             String myFileName = "";
 
-            if (PathType == Type.DIRECTORY)
+            if ( PathType == Type.DIRECTORY )
             {
                 // Do nothing, the FilePath ends at a directory.
             }
-            else if (PathType == Type.PROGRAM)
+            else if ( PathType == Type.PROGRAM )
             {
                 // Assume the FilePath ends in a programs name and we must strip that name off before setting the path.
-                myPath = System.IO.Path.GetDirectoryName(myFilePath);
-                myFileName = System.IO.Path.GetFileName(myFilePath);
+                myPath = System.IO.Path.GetDirectoryName( myFilePath );
+                myFileName = System.IO.Path.GetFileName( myFilePath );
             }
 
 
-            if (PathExists == false)
+            if ( PathExists == false )
             {
                 Path = "";
                 FullPath = "";
@@ -83,34 +79,34 @@ namespace SetupComputerVariables
         }
 
 
-        public bool TestFilePathExistance(String FilePath)
+        public bool TestFilePathExistance( String FilePath )
         {
             bool DoesPathExist = false;
 
-            if (String.IsNullOrEmpty(FilePath))
+            if ( String.IsNullOrEmpty( FilePath ) )
             {
                 return false;
             }
 
-            if (System.IO.Path.HasExtension(FilePath))
+            if ( System.IO.Path.HasExtension( FilePath ) )
             {
                 // If it has an extension, then set the Type to program.
                 PathType = Type.PROGRAM;
             }
 
-            if (PathType == Type.DIRECTORY)
+            if ( PathType == Type.DIRECTORY )
             {
                 // Test directory existance here.
                 // https://msdn.microsoft.com/en-us/library/system.io.directory.exists(v=vs.110).aspx
                 // This method does not use any exceptions.
-                DoesPathExist = Directory.Exists(FilePath);
+                DoesPathExist = Directory.Exists( FilePath );
             }
             else
             {
                 // Test file existance here.
                 // https://msdn.microsoft.com/en-us/library/system.io.file.exists(v=vs.110).aspx
                 // This method does not use any exceptions.
-                DoesPathExist = File.Exists(FilePath);
+                DoesPathExist = File.Exists( FilePath );
             }
 
             return DoesPathExist;

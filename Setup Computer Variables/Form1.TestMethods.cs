@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using System.Security.Principal;
 using System.Windows.Forms;
 using System.Drawing;
@@ -13,23 +12,23 @@ namespace SetupComputerVariables
         public bool boolAdministrator = false;
  
 
-        public bool IsAdministrator ()  // To get this code added, I had to goto Project and "Add New Item" on the file Form1.TestMethods.cs.
+        public bool IsAdministrator( )  // To get this code added, I had to goto Project and "Add New Item" on the file Form1.TestMethods.cs.
         {
-            WindowsIdentity identity = WindowsIdentity.GetCurrent();
-            WindowsPrincipal principal = new WindowsPrincipal(identity);
+            WindowsIdentity identity = WindowsIdentity.GetCurrent( );
+            WindowsPrincipal principal = new WindowsPrincipal( identity );
 
             try
             {
-                boolAdministrator = principal.IsInRole(WindowsBuiltInRole.Administrator);
+                boolAdministrator = principal.IsInRole( WindowsBuiltInRole.Administrator );
             }
-            catch (ArgumentNullException e)
+            catch ( ArgumentNullException e )
             {
                 boolAdministrator = false;
             }
 
-            if (boolAdministrator == false)
+            if ( boolAdministrator == false )
             {
-                ShowAdminDialogBox();
+                ShowAdminDialogBox( );
                 label_IsAdministrator.BackColor = Color.Red;
                 label_IsAdministrator.Text += "  FALSE!";
             }
@@ -39,29 +38,29 @@ namespace SetupComputerVariables
                 label_IsAdministrator.Text += "  True";
             }
 
-            return (boolAdministrator);
+            return ( boolAdministrator );
         }
 
 
-        public void ShowAdminDialogBox()
+        public void ShowAdminDialogBox( )
         {
-            MessageBox.Show("You must run this program as the Administrator.\nThe changes will not overwrite the current state of the computer.");
+            MessageBox.Show( "You must run this program as the Administrator.\nThe changes will not overwrite the current state of the computer." );
         }
 
 
 
-        public bool TestComputerNameForValidity ()
+        public bool TestComputerNameForValidity ( )
         {
             // https://msdn.microsoft.com/en-us/library/system.text.regularexpressions.regex(v=vs.110).aspx
             bool boolComputerNameValidChars = false;
-            if (String.IsNullOrEmpty(strComputerName))
+            if ( String.IsNullOrEmpty( strComputerName ) )
             {
                 // If it is empty, there's no work to be done.
-                return (boolComputerNameValidChars);
+                return ( boolComputerNameValidChars );
             }
             
-            Regex r = new Regex(@"[^\w _\-]$");  // https://msdn.microsoft.com/en-us/library/az24scfc(v=vs.110).aspx
-            if (r.IsMatch(strComputerName))
+            Regex r = new Regex( @"[^\w _\-]$" );  // https://msdn.microsoft.com/en-us/library/az24scfc(v=vs.110).aspx
+            if ( r.IsMatch( strComputerName ) )
             {
                 // validation failed
                 boolComputerNameValidChars = false;
@@ -71,7 +70,7 @@ namespace SetupComputerVariables
                 boolComputerNameValidChars = true;
             }
 
-            if (strComputerName.Length > 15)
+            if ( strComputerName.Length > 15 )
             {
                 boolComputerNameValidChars = false;
             }
@@ -80,24 +79,24 @@ namespace SetupComputerVariables
         }
 
 
-        public bool TestVariablesForValidity ()
+        public bool TestVariablesForValidity( )
         {
             bool boolDoPathsExist = true;
-            //if (String.IsNullOrEmpty(strPathToBGInfo) || String.IsNullOrEmpty(strPathToImageMagick) || String.IsNullOrEmpty(strPathToWindowsOOBE))
-            if (!RPathToBGInfo.PathExists || !RPathToImageMagick.PathExists || !RPathToWindowsOOBE.PathExists)
+            
+            if ( !RPathToBGInfo.PathExists || !RPathToImageMagick.PathExists || !RPathToWindowsOOBE.PathExists )
             {
                 boolDoPathsExist = false;
             }
 
             bool boolComputerNameStringNotNull = true;
-            if (String.IsNullOrEmpty(strComputerName))
+            if ( String.IsNullOrEmpty( strComputerName ) )
             {
                 boolComputerNameStringNotNull = false;
             }
 
-            bool boolComputerNameValidChars = TestComputerNameForValidity();
+            bool boolComputerNameValidChars = TestComputerNameForValidity( );
 
-            return (boolAdministrator && boolDoPathsExist && boolComputerNameStringNotNull && boolComputerNameValidChars);
+            return( boolAdministrator && boolDoPathsExist && boolComputerNameStringNotNull && boolComputerNameValidChars );
         }
     }
 }

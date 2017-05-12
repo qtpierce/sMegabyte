@@ -1,10 +1,6 @@
 using System;
 using System.IO;
-using System.Security.Principal;
 using System.Windows.Forms;
-using System.Drawing;
-using System.Text.RegularExpressions;
-using Microsoft.Win32;
 using System.Diagnostics;
 
 
@@ -13,7 +9,7 @@ namespace SetupComputerVariables
     public partial class Form1
     {
 
-        private void SetRegistryKeysForComputerName()
+        private void SetRegistryKeysForComputerName( )
         {
             String KeyName;
             // There are 4 registry keys that contain the hostname of the computer.  Update them to the currently
@@ -25,29 +21,29 @@ namespace SetupComputerVariables
             KeyName = "HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\services\\Tcpip\\Parameters";
             SubKeyName = "Hostname";
             Value = strComputerName;
-            SetRegistryKey(KeyName, SubKeyName, Value, RegistryKeyType.String);
+            SetRegistryKey( KeyName, SubKeyName, Value, RegistryKeyType.String );
 
 
             KeyName = "HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\services\\Tcpip\\Parameters";
             SubKeyName = "NV Hostname";
             Value = strComputerName;
-            SetRegistryKey(KeyName, SubKeyName, Value, RegistryKeyType.String);
+            SetRegistryKey( KeyName, SubKeyName, Value, RegistryKeyType.String );
 
 
             KeyName = "HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\ComputerName\\ComputerName";
             SubKeyName = "ComputerName";
             Value = strComputerName;
-            SetRegistryKey(KeyName, SubKeyName, Value, RegistryKeyType.String);
+            SetRegistryKey( KeyName, SubKeyName, Value, RegistryKeyType.String );
 
 
             KeyName = "HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\ComputerName\\ActiveComputerName";
             SubKeyName = "ComputerName";
             Value = strComputerName;
-            SetRegistryKey(KeyName, SubKeyName, Value, RegistryKeyType.String);
+            SetRegistryKey( KeyName, SubKeyName, Value, RegistryKeyType.String );
         }
 
 
-        private void SetRegistryKeysForBackGroundImage()
+        private void SetRegistryKeysForBackGroundImage( )
         {
             // Registry Key redirection confused me all morning.  
             // http://stackoverflow.com/questions/7311146/write-the-registry-value-without-redirect-in-wow6432node
@@ -67,68 +63,68 @@ namespace SetupComputerVariables
             KeyName = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Authentication\\LogonUI\\Background";
             SubKeyName = "OEMBackground";
             Value = "1";
-            SetRegistryKey(KeyName, SubKeyName, Value, RegistryKeyType.DWord);
+            SetRegistryKey( KeyName, SubKeyName, Value, RegistryKeyType.DWord );
 
 
             KeyName = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Authentication\\LogonUI\\BootAnimation";
             SubKeyName = "DisableStartupSound";
             Value = "1";
-            SetRegistryKey(KeyName, SubKeyName, Value, RegistryKeyType.DWord);
+            SetRegistryKey( KeyName, SubKeyName, Value, RegistryKeyType.DWord );
         }
 
 
 
 
-        private void GenerateBackgroundImage()
+        private void GenerateBackgroundImage( )
         {
-            UseBGInfoToGenerateBackgroundImage();
-            UseImageMagickToConvertAndCopy();
+            UseBGInfoToGenerateBackgroundImage( );
+            UseImageMagickToConvertAndCopy( );
         }
 
 
-        private void UseBGInfoToGenerateBackgroundImage()
+        private void UseBGInfoToGenerateBackgroundImage( )
         {
-            String BackgroundDirectory = RPathToWindowsOOBE.GetFullPath() + @"\info\backgrounds";
+            String BackgroundDirectory = RPathToWindowsOOBE.GetFullPath( ) + @"\info\backgrounds";
             richTextBox_Status.Text += "Creating a new directory: " + BackgroundDirectory + "\n";
-            Directory.CreateDirectory(BackgroundDirectory);
+            Directory.CreateDirectory( BackgroundDirectory );
 
 
             // http://stackoverflow.com/questions/1469764/run-command-prompt-commands
-            Process cmdBGInfo = new Process();
-            String strDirectoryToBGInfo = RPathToBGInfo.GetPath(); //Path.GetDirectoryName(strPathToBGInfo);
-            cmdBGInfo.StartInfo.FileName = RPathToBGInfo.GetFileName();  // "BGInfo.exe";
+            Process cmdBGInfo = new Process( );
+            String strDirectoryToBGInfo = RPathToBGInfo.GetPath( );
+            cmdBGInfo.StartInfo.FileName = RPathToBGInfo.GetFileName( );  // "BGInfo.exe";
             cmdBGInfo.StartInfo.WorkingDirectory = strDirectoryToBGInfo;
             cmdBGInfo.StartInfo.Arguments = strDirectoryToBGInfo + @"\gaming_machines.bgi /NOLICPROMPT /timer:0";
             richTextBox_Status.Text += "Calling BGInfo.exe with: " + cmdBGInfo.StartInfo.Arguments + "\n";
 
             try
             {
-                cmdBGInfo.Start();
-                cmdBGInfo.WaitForExit();
+                cmdBGInfo.Start( );
+                cmdBGInfo.WaitForExit( );
             }
-            catch (Exception e)
+            catch( Exception e )
             {
                 // do nothing.
             }
         }
 
 
-        private void UseImageMagickToConvertAndCopy()
+        private void UseImageMagickToConvertAndCopy( )
         {
-            String strDirectoryToBGInfo = RPathToBGInfo.GetPath(); //Path.GetDirectoryName(strPathToBGInfo);
-            Process cmdImageMagick = new Process();
-            String strDirectoryToImageMagick = RPathToImageMagick.GetPath();
-            cmdImageMagick.StartInfo.FileName = RPathToImageMagick.GetFileName();
+            String strDirectoryToBGInfo = RPathToBGInfo.GetPath( );
+            Process cmdImageMagick = new Process( );
+            String strDirectoryToImageMagick = RPathToImageMagick.GetPath( );
+            cmdImageMagick.StartInfo.FileName = RPathToImageMagick.GetFileName( );
             cmdImageMagick.StartInfo.WorkingDirectory = strDirectoryToImageMagick;
             cmdImageMagick.StartInfo.Arguments = strDirectoryToBGInfo + @"\BGInfo.bmp " + strDirectoryToBGInfo + @"\backgroundDefault.jpg";
             richTextBox_Status.Text += "Calling ImageMagick's convert.exe with: " + cmdImageMagick.StartInfo.Arguments + "\n";
 
             try
             {
-                cmdImageMagick.Start();
-                cmdImageMagick.WaitForExit();
+                cmdImageMagick.Start( );
+                cmdImageMagick.WaitForExit( );
             }
-            catch (Exception e)
+            catch( Exception e )
             {
                 // do nothing.
             }
@@ -136,16 +132,16 @@ namespace SetupComputerVariables
             bool OverWrite = true;
             try
             {
-                File.Copy(strDirectoryToBGInfo + @"\backgroundDefault.jpg", RPathToWindowsOOBE.GetPath() + @"\info\backgrounds\backgroundDefault.jpg", OverWrite);
+                File.Copy( strDirectoryToBGInfo + @"\backgroundDefault.jpg", RPathToWindowsOOBE.GetPath() + @"\info\backgrounds\backgroundDefault.jpg", OverWrite );
             }
-            catch (Exception e)
+            catch( Exception e )
             {
                 // do nothing.
             }
         }
 
 
-        private void RegisterAndActivateWindows ()
+        private void RegisterAndActivateWindows( )
         {
             // Add a feature to Activate Windows.
             // http://www.howtogeek.com/245445/how-to-use-slmgr-to-change-remove-or-extend-your-windows-license/
@@ -153,63 +149,52 @@ namespace SetupComputerVariables
             //   slmgr /ato
 
             Cursor.Current = Cursors.WaitCursor;
-            UseSlmgrToRegisterProductKey();
-            UseSlmgrToActivateWindows();
+            UseSlmgrToRegisterProductKey( );
+            UseSlmgrToActivateWindows( );
             Cursor.Current = Cursors.Default;
         }
 
 
-        private void UseSlmgrToRegisterProductKey()
+        private void UseSlmgrToRegisterProductKey( )
         {
-            if (String.IsNullOrEmpty(strWindowsProductKey))
-            {
-                return;
-            }
-            else
-            {
-                Process cmdSlmgr = new Process();
-                cmdSlmgr.StartInfo.FileName = "slmgr.vbs";
-                cmdSlmgr.StartInfo.Arguments = "/ipk "+ strWindowsProductKey;
-                richTextBox_Status.Text += "Calling slmgr.exe with: " + cmdSlmgr.StartInfo.Arguments + " in order to register product key.\n";
-
-                try
-                {
-                    cmdSlmgr.Start();
-                    cmdSlmgr.WaitForExit();
-                }
-                catch (Exception e)
-                {
-                    // do nothing.
-                }
-            }
+            String arguments = "/ipk " + strWindowsProductKey;
+            String statusSuffix = " in order to register product key.";
+            CallSlmgr( arguments, statusSuffix );
         }
 
 
-        private void UseSlmgrToActivateWindows()
+        private void UseSlmgrToActivateWindows( )
         {
-            if (String.IsNullOrEmpty(strWindowsProductKey))
+            String arguments = "/ato";
+            String statusSuffix = "in order to activate Windows.";
+            CallSlmgr( arguments, statusSuffix );
+        }
+
+
+        private void CallSlmgr ( String arguments, String statusSuffix )
+        { 
+            if ( String.IsNullOrEmpty( strWindowsProductKey ) )
             {
                 return;
             }
             else
             {
-                Process cmdSlmgr = new Process();
+                // https://technet.microsoft.com/en-us/library/dn502540(v=ws.11).aspx
+                Process cmdSlmgr = new Process( );
                 cmdSlmgr.StartInfo.FileName = "slmgr.vbs";
-                cmdSlmgr.StartInfo.Arguments = "/ato";
-                richTextBox_Status.Text += "Calling slmgr.exe with: " + cmdSlmgr.StartInfo.Arguments + " in order to activate Windows.\n";
+                cmdSlmgr.StartInfo.Arguments = arguments;
+                richTextBox_Status.Text += "Calling slmgr.exe with: " + cmdSlmgr.StartInfo.Arguments + " " + statusSuffix + "\n";
 
                 try
                 {
-                    cmdSlmgr.Start();
-                    cmdSlmgr.WaitForExit();
+                    cmdSlmgr.Start( );
+                    cmdSlmgr.WaitForExit( );
                 }
-                catch (Exception e)
+                catch( Exception e )
                 {
-                    // do nothing.
+                    richTextBox_Status.Text += "Callslmgr had an exception: " + e.ToString( ) + "\n";
                 }
             }
         }
     }
 }
-
-
