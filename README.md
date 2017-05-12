@@ -10,6 +10,10 @@ The code works, the instructables is rough drafted and not finished.
 [Arduino101 RC Cars](http://www.instructables.com/id/Arduino101-RC-Cars/)
 
 
+## IP Address Scanner
+The code meant to scan the IP Addresses assigned to computers on the network.  It uses async parallelism and runs on both Windows and Linux.
+
+
 ## Intel Edison pushing bluetooth audio
 The code meant for an Intel Edison that pushes Ogg Vorbis files to the car 
 stereo in my car.  The write up and HW instructions maybe found at:
