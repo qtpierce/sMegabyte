@@ -10,8 +10,15 @@ The code works, the instructables is rough drafted and not finished.
 [Arduino101 RC Cars](http://www.instructables.com/id/Arduino101-RC-Cars/)
 
 
+## ComputerPinger
+The code I use to count used IP addresses and monitor the quality of a netowrk.  
+I use this code when doing DJ work to keep tabs on whether client computers are
+running or crashing.
+
+
 ## IP Address Scanner
-The code meant to scan the IP Addresses assigned to computers on the network.  It uses async parallelism and runs on both Windows and Linux.
+The code meant to scan the IP Addresses assigned to computers on the network.  
+It uses async parallelism and runs on both Windows and Linux.
 
 
 ## Intel Edison pushing bluetooth audio
@@ -31,6 +38,8 @@ I have put NO instructions on the internet because this is resume fodder.
 ## VideoSyncServerAndClient
 The code I wrote that automates serving videos between multiple client computers.  
 I have put NO instructions on the internet because this is resume fodder.
+I use this software while doing DJ work to automate the push of video and image 
+content from my DJ computer out to client laptops hooked to large format screens.
 
 
 ## Weather Advisory Project
