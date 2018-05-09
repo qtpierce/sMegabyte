@@ -3,7 +3,6 @@
 # timer.pl
 # This is a timer.  It counts down time in seconds.
 # Quentin Pierce
-# 05-08-2017
 
 our %skins;
 
@@ -11,14 +10,22 @@ use strict;  # strict forces me to scope variables correctly.
 $| = 1;  # Turn off buffering.
 use Carp qw ( cluck carp croak confess );  # Carp provides exception handling.
 use Tk;
-use handleargs;
 use handleappearances;
 use Time::Local;
 use Cwd 'abs_path';
+use Getopt::Long;
+
+my $version = "20170609";
+
+my $opt_debug;
+my $opt_help;
+my $opt_time;
+GetOptions ("debug|d" => \$opt_debug,
+            "help|h" => \$opt_help,
+            "time|t=s" => \$opt_time,
+           );
 
 
-my @argscopy;
-@argscopy = &findhelparg (@ARGV);
 
 my $difference = 0;
 my $Tminus1 = 0;
@@ -90,8 +97,10 @@ $entry1->grid(-columnspan => 300);
 $entry3->grid(-columnspan => 300);
 $chk1->grid($timeAlarmPoint_label, $entry4);
 
-if ($argscopy[0]) {
-    $timeDifference_formatd = &convertToSeconds ($argscopy[0]);
+
+if( $opt_time > 0 ) 
+{
+    $timeDifference_formatd = &convertToSeconds( $opt_time );
     toggleCountDown ();
 }
 
