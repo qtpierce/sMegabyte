@@ -53,12 +53,12 @@ namespace PlaylistGenerator
 
                 if (wasConnectionGood)
                 {
-                    SendPlaylist("connect", "publisher");
+                    SendPlaylist("publisher_connect", "publisher");
                 }
 
                 if (IsFilePathGiven)
                 {
-                    SendPlaylist("playlist", richText_Playlist.Text);
+                    SendPlaylist("publisher_playlist", richText_Playlist.Text);
                     if (isImmediateExitCmd)
                     {
                         try
@@ -113,11 +113,13 @@ namespace PlaylistGenerator
             // 
             // buttonSendPlaylist
             // 
+            this.buttonSendPlaylist.BackColor = System.Drawing.Color.Transparent;
             this.buttonSendPlaylist.Location = new System.Drawing.Point(674, 400);
             this.buttonSendPlaylist.Name = "buttonSendPlaylist";
             this.buttonSendPlaylist.Size = new System.Drawing.Size(168, 50);
             this.buttonSendPlaylist.TabIndex = 14;
             this.buttonSendPlaylist.Text = "Send Playlist";
+            this.buttonSendPlaylist.UseVisualStyleBackColor = false;
             this.buttonSendPlaylist.Click += new System.EventHandler(this.ButtonSendMessageClick);
             // 
             // textBoxConnectStatus
@@ -125,7 +127,7 @@ namespace PlaylistGenerator
             this.textBoxConnectStatus.BackColor = System.Drawing.SystemColors.Control;
             this.textBoxConnectStatus.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.textBoxConnectStatus.ForeColor = System.Drawing.SystemColors.HotTrack;
-            this.textBoxConnectStatus.Location = new System.Drawing.Point(486, 9);
+            this.textBoxConnectStatus.Location = new System.Drawing.Point(496, 30);
             this.textBoxConnectStatus.Name = "textBoxConnectStatus";
             this.textBoxConnectStatus.ReadOnly = true;
             this.textBoxConnectStatus.Size = new System.Drawing.Size(240, 13);
@@ -184,7 +186,7 @@ namespace PlaylistGenerator
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(192, 16);
             this.label3.TabIndex = 8;
-            this.label3.Text = "Playlist Sent to Broker";
+            this.label3.Text = "Playlist Sent to Server";
             // 
             // label7
             // 
@@ -239,14 +241,14 @@ namespace PlaylistGenerator
             // openToolStripMenuItem
             // 
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
-            this.openToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(148, 22);
             this.openToolStripMenuItem.Text = "Open Settings";
             this.openToolStripMenuItem.Click += new System.EventHandler(this.openToolStripMenuItem_Click);
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(148, 22);
             this.exitToolStripMenuItem.Text = "Exit";
             // 
             // openFileDialog_Variables
@@ -262,6 +264,7 @@ namespace PlaylistGenerator
             // PlaylistGenerator
             // 
             this.AutoScaleBaseSize = new System.Drawing.Size(5, 13);
+            this.BackColor = System.Drawing.Color.PowderBlue;
             this.ClientSize = new System.Drawing.Size(1352, 461);
             this.Controls.Add(this.menuStrip1);
             this.Controls.Add(this.button_addMediaFile);
@@ -304,7 +307,7 @@ namespace PlaylistGenerator
 
             if (wasConnectionGood)
             {
-                SendPlaylist("connect", "publisher");
+                SendPlaylist("publisher_connect", "publisher");
             }
         }
 
@@ -312,7 +315,7 @@ namespace PlaylistGenerator
 
         void ButtonSendMessageClick(object sender, System.EventArgs e)
         {
-            SendPlaylist("playlist", richText_Playlist.Text);
+            SendPlaylist("publisher_playlist", richText_Playlist.Text);
         }
 
 
@@ -334,7 +337,7 @@ namespace PlaylistGenerator
 
         private void UpdateControls( bool connected ) 
 		{
-			buttonConnect.Enabled = !connected;
+			//buttonConnect.Enabled = !connected;
 			string connectStatus = connected? "Connected" : "Not Connected";
 			textBoxConnectStatus.Text = connectStatus;
 		}
@@ -380,7 +383,7 @@ namespace PlaylistGenerator
 
             String DontNeedTempPathYet = "";
 
-            Library.MediaItem newMediaItem = new Library.MediaItem(CountMediaItems, newFileName, DontNeedTempPathYet);
+            Library.MediaItem newMediaItem = new Library.MediaItem(CountMediaItems, newFileName, DontNeedTempPathYet, m_library);
             CountMediaItems++;
             String timeLimit = newMediaItem.GetTimeLimitCategory();
 
@@ -431,7 +434,7 @@ namespace PlaylistGenerator
 
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            openFileDialog_Variables.FileName = "data.xml";
+            openFileDialog_Variables.FileName = "*setup.xml";
             openFileDialog_Variables.InitialDirectory = null;  // There's a stackoverflow answer that suggests this is necessary.
             openFileDialog_Variables.InitialDirectory = @"c:\temp\";
             DialogResult result = openFileDialog_Variables.ShowDialog();

@@ -6,7 +6,7 @@ using System.Windows.Forms;
 using System.Net.Sockets;
 using Library;
 using System.Text.RegularExpressions;
-
+using System.Threading;
 
 namespace VideoSyncClient
 {
@@ -24,17 +24,17 @@ namespace VideoSyncClient
         private Label label7;
         private RichTextBox richTextBoxHistoryResponses;
 
-        private Parser parser = new Parser();
+
         private System.ComponentModel.IContainer components;
-        private Library1 m_library = new Library1();
-        private Globals m_Globals = new Globals();
+        private static Globals m_Globals = new Globals();
+        private Parser parser = new Parser( m_Globals );
 
 
-        public Timer timerPolling;
+        public System.Windows.Forms.Timer timerPolling;
         private MenuStrip menuStrip1;
         private ToolStripMenuItem fileToolStripMenuItem;
         private ToolStripMenuItem toolsToolStripMenuItem;
-        private ToolStripMenuItem myMediaPlayerToolStripMenuItem;
+        private ToolStripMenuItem tempDirectoryToolStripMenuItem;
         private ToolStripMenuItem vLCToolStripMenuItem;
         private ToolStripMenuItem myMediaPlayerToolStripMenuItem1;
         private FolderBrowserDialog folderBrowserDialog_tempDirectory;
@@ -48,11 +48,13 @@ namespace VideoSyncClient
         private ToolStripMenuItem saveToolStripMenuItem;
         private SaveFileDialog saveFileDialog_Variables;
         private Button buttonTestSettings;
-        private LogFile logFile = new Library.LogFile("subscriberLog.txt");
+        private LogFile logFile = new Library.LogFile("VideoSyncClient.log");
         private Button button_KillBlackScreens;
         private CheckBox checkBox_PartialScreen;
+        private ToolStripMenuItem showToolPathsToolStripMenuItem;
         SimpleCommandLineParser cmdParser = new SimpleCommandLineParser();
-
+        private String m_LastSettingsFile = "";
+        private String m_UsersChosenSettingsFile = "";
 
 
         public VideoSyncClient(string[] args)
@@ -62,17 +64,30 @@ namespace VideoSyncClient
             cmdParser.Parse(args);
             ProcessCmdArgs();
 
-            textBoxIP.Text = m_library.GetLocalName();
-            m_library.SetStateFile(Library1.State.not_busy);
+            m_Globals.m_library.SetStateFile(Library1.State.not_busy);
 
-            m_Globals.m_communications.m_serverName = m_library.GetLocalName();
+            m_Globals.m_communications.m_serverName = m_Globals.m_library.GetLocalName();
             m_Globals.m_communications.m_portNumber = m_Globals.m_communications.GetPortNumber();
+
+            m_LastSettingsFile = m_Globals.m_ApplicationDirectory + @"\lastSettings.xml";
+            if(m_Globals.m_library.TestFilePathExistance(m_LastSettingsFile) == true)
+            {
+                m_Globals.AssignVariablesFromXML(m_LastSettingsFile);
+                m_UsersChosenSettingsFile = m_LastSettingsFile;
+                String tempPath = m_Globals.Get_tempPath();
+                if (m_Globals.m_library.TestFilePathExistance(tempPath))
+                {
+                    m_Globals.isTempPathSet = true;
+                }
+            }
+
+            textBoxIP.Text = m_Globals.m_communications.m_serverName;
 
             // React to the command line arguments that perform automation.
             if (isAutoConnectCmd)
             {
-                m_Globals.AssignVariablesFromXML(@"c:/temp/data.xml");
-                
+                m_Globals.AssignVariablesFromXML(m_LastSettingsFile);
+
                 bool wasConnectionGood = m_Globals.m_communications.ConnectToServer();
                 UpdateControls(wasConnectionGood);
                 {
@@ -116,7 +131,7 @@ namespace VideoSyncClient
             this.saveAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.myMediaPlayerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.tempDirectoryToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.vLCToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.myMediaPlayerToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.folderBrowserDialog_tempDirectory = new System.Windows.Forms.FolderBrowserDialog();
@@ -128,11 +143,13 @@ namespace VideoSyncClient
             this.buttonTestSettings = new System.Windows.Forms.Button();
             this.button_KillBlackScreens = new System.Windows.Forms.Button();
             this.checkBox_PartialScreen = new System.Windows.Forms.CheckBox();
+            this.showToolPathsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // buttonSendMessage
             // 
+            this.buttonSendMessage.FlatStyle = System.Windows.Forms.FlatStyle.System;
             this.buttonSendMessage.Location = new System.Drawing.Point(196, 420);
             this.buttonSendMessage.Name = "buttonSendMessage";
             this.buttonSendMessage.Size = new System.Drawing.Size(168, 50);
@@ -142,13 +159,14 @@ namespace VideoSyncClient
             // 
             // textBoxConnectStatus
             // 
-            this.textBoxConnectStatus.BackColor = System.Drawing.SystemColors.Control;
+            this.textBoxConnectStatus.BackColor = System.Drawing.Color.Black;
             this.textBoxConnectStatus.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.textBoxConnectStatus.ForeColor = System.Drawing.SystemColors.HotTrack;
-            this.textBoxConnectStatus.Location = new System.Drawing.Point(489, 28);
+            this.textBoxConnectStatus.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.textBoxConnectStatus.ForeColor = System.Drawing.Color.WhiteSmoke;
+            this.textBoxConnectStatus.Location = new System.Drawing.Point(503, 36);
             this.textBoxConnectStatus.Name = "textBoxConnectStatus";
             this.textBoxConnectStatus.ReadOnly = true;
-            this.textBoxConnectStatus.Size = new System.Drawing.Size(240, 13);
+            this.textBoxConnectStatus.Size = new System.Drawing.Size(101, 15);
             this.textBoxConnectStatus.TabIndex = 10;
             this.textBoxConnectStatus.Text = "Not Connected";
             // 
@@ -167,15 +185,17 @@ namespace VideoSyncClient
             // 
             // label5
             // 
-            this.label5.Location = new System.Drawing.Point(384, 28);
+            this.label5.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label5.ForeColor = System.Drawing.Color.WhiteSmoke;
+            this.label5.Location = new System.Drawing.Point(381, 36);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(104, 16);
+            this.label5.Size = new System.Drawing.Size(134, 21);
             this.label5.TabIndex = 13;
             this.label5.Text = "Connection Status:";
             // 
             // textBoxIP
             // 
-            this.textBoxIP.Location = new System.Drawing.Point(116, 29);
+            this.textBoxIP.Location = new System.Drawing.Point(134, 29);
             this.textBoxIP.Name = "textBoxIP";
             this.textBoxIP.Size = new System.Drawing.Size(152, 20);
             this.textBoxIP.TabIndex = 3;
@@ -183,23 +203,28 @@ namespace VideoSyncClient
             // 
             // label1
             // 
+            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label1.ForeColor = System.Drawing.Color.WhiteSmoke;
             this.label1.Location = new System.Drawing.Point(12, 29);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(96, 16);
+            this.label1.Size = new System.Drawing.Size(131, 20);
             this.label1.TabIndex = 4;
             this.label1.Text = "Server IP Address";
             // 
             // label7
             // 
+            this.label7.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label7.ForeColor = System.Drawing.Color.WhiteSmoke;
             this.label7.Location = new System.Drawing.Point(12, 92);
             this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(233, 19);
+            this.label7.Size = new System.Drawing.Size(158, 16);
             this.label7.TabIndex = 18;
-            this.label7.Text = "Playlist Received";
+            this.label7.Text = "Playlist";
             // 
             // richTextBoxHistoryResponses
             // 
-            this.richTextBoxHistoryResponses.BackColor = System.Drawing.SystemColors.GradientActiveCaption;
+            this.richTextBoxHistoryResponses.BackColor = System.Drawing.Color.Black;
+            this.richTextBoxHistoryResponses.ForeColor = System.Drawing.SystemColors.MenuHighlight;
             this.richTextBoxHistoryResponses.Location = new System.Drawing.Point(15, 114);
             this.richTextBoxHistoryResponses.Name = "richTextBoxHistoryResponses";
             this.richTextBoxHistoryResponses.ReadOnly = true;
@@ -265,19 +290,20 @@ namespace VideoSyncClient
             // toolsToolStripMenuItem
             // 
             this.toolsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.myMediaPlayerToolStripMenuItem,
+            this.tempDirectoryToolStripMenuItem,
             this.vLCToolStripMenuItem,
-            this.myMediaPlayerToolStripMenuItem1});
+            this.myMediaPlayerToolStripMenuItem1,
+            this.showToolPathsToolStripMenuItem});
             this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
             this.toolsToolStripMenuItem.Size = new System.Drawing.Size(48, 20);
             this.toolsToolStripMenuItem.Text = "Tools";
             // 
-            // myMediaPlayerToolStripMenuItem
+            // tempDirectoryToolStripMenuItem
             // 
-            this.myMediaPlayerToolStripMenuItem.Name = "myMediaPlayerToolStripMenuItem";
-            this.myMediaPlayerToolStripMenuItem.Size = new System.Drawing.Size(201, 22);
-            this.myMediaPlayerToolStripMenuItem.Text = "set Temp Directory";
-            this.myMediaPlayerToolStripMenuItem.Click += new System.EventHandler(this.myMediaPlayerToolStripMenuItem_Click);
+            this.tempDirectoryToolStripMenuItem.Name = "tempDirectoryToolStripMenuItem";
+            this.tempDirectoryToolStripMenuItem.Size = new System.Drawing.Size(201, 22);
+            this.tempDirectoryToolStripMenuItem.Text = "set Temp Directory";
+            this.tempDirectoryToolStripMenuItem.Click += new System.EventHandler(this.tempDirectoryToolStripMenuItem_Click);
             // 
             // vLCToolStripMenuItem
             // 
@@ -295,37 +321,43 @@ namespace VideoSyncClient
             // 
             // folderBrowserDialog_tempDirectory
             // 
-            this.folderBrowserDialog_tempDirectory.SelectedPath = "c:\\";
+            this.folderBrowserDialog_tempDirectory.SelectedPath = "c:\\temp\\";
             // 
             // label_PlayListCopyIndicator
             // 
             this.label_PlayListCopyIndicator.AutoSize = true;
-            this.label_PlayListCopyIndicator.Location = new System.Drawing.Point(384, 64);
+            this.label_PlayListCopyIndicator.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label_PlayListCopyIndicator.ForeColor = System.Drawing.Color.WhiteSmoke;
+            this.label_PlayListCopyIndicator.Location = new System.Drawing.Point(381, 72);
             this.label_PlayListCopyIndicator.Name = "label_PlayListCopyIndicator";
-            this.label_PlayListCopyIndicator.Size = new System.Drawing.Size(73, 13);
+            this.label_PlayListCopyIndicator.Size = new System.Drawing.Size(91, 16);
             this.label_PlayListCopyIndicator.TabIndex = 22;
             this.label_PlayListCopyIndicator.Text = "Status of Files";
             // 
             // openFileDialog_MyMediaPlayerPath
             // 
-            this.openFileDialog_MyMediaPlayerPath.FileName = "openFileDialog1";
+            this.openFileDialog_MyMediaPlayerPath.FileName = "MyMediaPlayer.exe";
+            this.openFileDialog_MyMediaPlayerPath.InitialDirectory = "c:\\utils\\Video Sync 2\\";
             // 
             // openFileDialog_VLCPath
             // 
-            this.openFileDialog_VLCPath.FileName = "openFileDialog1";
+            this.openFileDialog_VLCPath.FileName = "vlc.exe";
+            this.openFileDialog_VLCPath.InitialDirectory = "c:\\utils\\Video Sync 2\\VLC";
             // 
             // openFileDialog_Variables
             // 
-            this.openFileDialog_Variables.FileName = "data.xml";
+            this.openFileDialog_Variables.FileName = "*setup.xml";
             this.openFileDialog_Variables.Filter = "\"XML|*.xml|All files|*.*\"";
+            this.openFileDialog_Variables.InitialDirectory = "c:\\utils\\Video Sync 2\\";
             // 
             // saveFileDialog_Variables
             // 
-            this.saveFileDialog_Variables.FileName = "data.xml";
+            this.saveFileDialog_Variables.FileName = "setup.xml";
             this.saveFileDialog_Variables.Filter = "\"XML|*.xml|All files|*.*\"";
             // 
             // buttonTestSettings
             // 
+            this.buttonTestSettings.FlatStyle = System.Windows.Forms.FlatStyle.System;
             this.buttonTestSettings.Location = new System.Drawing.Point(15, 420);
             this.buttonTestSettings.Name = "buttonTestSettings";
             this.buttonTestSettings.Size = new System.Drawing.Size(168, 50);
@@ -336,17 +368,20 @@ namespace VideoSyncClient
             // 
             // button_KillBlackScreens
             // 
+            this.button_KillBlackScreens.BackColor = System.Drawing.Color.DimGray;
+            this.button_KillBlackScreens.FlatStyle = System.Windows.Forms.FlatStyle.System;
             this.button_KillBlackScreens.Location = new System.Drawing.Point(429, 420);
             this.button_KillBlackScreens.Name = "button_KillBlackScreens";
             this.button_KillBlackScreens.Size = new System.Drawing.Size(168, 50);
             this.button_KillBlackScreens.TabIndex = 24;
-            this.button_KillBlackScreens.Text = "Turn Off Black Screens";
-            this.button_KillBlackScreens.UseVisualStyleBackColor = true;
+            this.button_KillBlackScreens.Text = "Turn Off Media Players";
+            this.button_KillBlackScreens.UseVisualStyleBackColor = false;
             this.button_KillBlackScreens.Click += new System.EventHandler(this.button_KillBlackScreens_Click);
             // 
             // checkBox_PartialScreen
             // 
             this.checkBox_PartialScreen.AutoSize = true;
+            this.checkBox_PartialScreen.ForeColor = System.Drawing.Color.WhiteSmoke;
             this.checkBox_PartialScreen.Location = new System.Drawing.Point(188, 91);
             this.checkBox_PartialScreen.Name = "checkBox_PartialScreen";
             this.checkBox_PartialScreen.Size = new System.Drawing.Size(92, 17);
@@ -355,10 +390,20 @@ namespace VideoSyncClient
             this.checkBox_PartialScreen.UseVisualStyleBackColor = true;
             this.checkBox_PartialScreen.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
             // 
+            // showToolPathsToolStripMenuItem
+            // 
+            this.showToolPathsToolStripMenuItem.Name = "showToolPathsToolStripMenuItem";
+            this.showToolPathsToolStripMenuItem.Size = new System.Drawing.Size(201, 22);
+            this.showToolPathsToolStripMenuItem.Text = "Show Tool Paths";
+            this.showToolPathsToolStripMenuItem.Click += new System.EventHandler(this.showToolPathsToolStripMenuItem_Click);
+            // 
             // VideoSyncClient
             // 
             this.AutoScaleBaseSize = new System.Drawing.Size(5, 13);
+            this.BackColor = System.Drawing.Color.Black;
             this.ClientSize = new System.Drawing.Size(616, 483);
+            this.Controls.Add(this.textBoxConnectStatus);
+            this.Controls.Add(this.textBoxIP);
             this.Controls.Add(this.checkBox_PartialScreen);
             this.Controls.Add(this.button_KillBlackScreens);
             this.Controls.Add(this.buttonTestSettings);
@@ -367,10 +412,8 @@ namespace VideoSyncClient
             this.Controls.Add(this.richTextBoxHistoryResponses);
             this.Controls.Add(this.buttonSendMessage);
             this.Controls.Add(this.label5);
-            this.Controls.Add(this.textBoxConnectStatus);
             this.Controls.Add(this.buttonConnect);
             this.Controls.Add(this.label1);
-            this.Controls.Add(this.textBoxIP);
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "VideoSyncClient";
@@ -401,19 +444,19 @@ namespace VideoSyncClient
 
         void ButtonSendMessageClick(object sender, System.EventArgs e)
         {
-            SendMessageToServer();
+            SendMessageToServer("client_playlist", "null");
         }
 
 
 
         private void SendConnectMessageToServer()
         {
-            SendMessageToServer("connect", "");
+            SendMessageToServer("client_connect", "null");
         }
 
 
 
-        void SendMessageToServer(String messageName = "playlist", String messageContent = "")
+        void SendMessageToServer(String messageName, String messageContent)
         {
             String messageSent = "";
             messageSent = m_Globals.m_communications.SendMessageToServer(messageName, messageContent);
@@ -463,7 +506,7 @@ namespace VideoSyncClient
 				System.Text.Decoder d = System.Text.Encoding.UTF8.GetDecoder();
 				int charLen = d.GetChars(theSockId.dataBuffer, 0, iRx, chars, 0);
 				System.String szData = new System.String(chars);
-
+                
                 ReceivedMsg.AppendText(szData);
 
                 // If we finished receiving the response (EventData object) from the Broker
@@ -473,11 +516,10 @@ namespace VideoSyncClient
                 {
                     // Remove the flag "ENDOFMESSAGE"
                     String SanitizedMessage = Regex.Replace(ReceivedMsg.GetText(), EOMDelimiter, "");
-
+                    AppendToRichTextBoxHistoryResponses(SanitizedMessage);
                     ProcessCommMessage(SanitizedMessage);
 
-                    String appendHistory = Get_richTextBoxHistoryResponses() + "\n\n" + SanitizedMessage;
-                    Set_richTextBoxHistoryResponses(appendHistory);
+
                     ReceivedMsg.SetText("");
                 }
 
@@ -491,6 +533,13 @@ namespace VideoSyncClient
 			{
 				MessageBox.Show (se.Message );
 			}
+        }
+
+
+        public void AppendToRichTextBoxHistoryResponses(String message)
+        {
+            String appendHistory = Get_richTextBoxHistoryResponses() + "\n\n" + message;
+            Set_richTextBoxHistoryResponses(appendHistory);
         }
 
 
@@ -554,10 +603,19 @@ namespace VideoSyncClient
 
             logFile.WriteToLog("-I-  received message: " + receivedEventData.ToString());
 
+            if (m_Globals.isTempPathSet == false)
+            {
+                String tempPath = m_Globals.Get_tempPath();
+                if (m_Globals.m_library.TestFilePathExistance(tempPath))
+                {
+                    m_Globals.isTempPathSet = true;
+                }
+            }
+
             if (m_Globals.isTempPathSet)
             {
                 CheckForIllegalCrossThreadCalls = false;
-                if (receivedEventData.Name.Equals ("playlist"))
+                if (receivedEventData.Name.Contains ("playlist"))
                 {
                     label_PlayListCopyIndicator.BackColor = System.Drawing.Color.Red;
                     label_PlayListCopyIndicator.Text = "Copying Files";
@@ -565,7 +623,7 @@ namespace VideoSyncClient
 
                 String tempPath = m_Globals.Get_tempPath();
                 CallParserProcessEvents(receivedEventData.Name, receivedEventData.Details);
-                if (receivedEventData.Name.Equals("playlist"))
+                if (receivedEventData.Name.Contains("playlist"))
                 {
                     label_PlayListCopyIndicator.BackColor = System.Drawing.Color.LightGreen;
                     label_PlayListCopyIndicator.Text = "Done Copying";
@@ -582,14 +640,14 @@ namespace VideoSyncClient
 
 		private void UpdateControls( bool connected ) 
 		{
-			buttonConnect.Enabled = !connected;
+			//buttonConnect.Enabled = !connected;
 			string connectStatus = connected? "Connected" : "Not Connected";
 			textBoxConnectStatus.Text = connectStatus;
 		}
 
         
 
-        private void myMediaPlayerToolStripMenuItem_Click(object sender, EventArgs e)
+        private void tempDirectoryToolStripMenuItem_Click(object sender, EventArgs e)
         {
             DialogResult result = folderBrowserDialog_tempDirectory.ShowDialog();
             if (result.Equals(DialogResult.OK) || result.Equals(DialogResult.Yes))
@@ -634,9 +692,9 @@ namespace VideoSyncClient
 
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            openFileDialog_Variables.FileName = "data.xml";
+            openFileDialog_Variables.FileName = "*setup.xml";
             openFileDialog_Variables.InitialDirectory = null;  // There's a stackoverflow answer that suggests this is necessary.
-            openFileDialog_Variables.InitialDirectory = @"c:\temp\";
+            openFileDialog_Variables.InitialDirectory = AppDomain.CurrentDomain.BaseDirectory;
             DialogResult result = openFileDialog_Variables.ShowDialog();
 
             if (result == DialogResult.OK)
@@ -668,18 +726,34 @@ namespace VideoSyncClient
             {
                 m_Globals.SaveXMLVariablesFile();
             }
+
+            if (m_LastSettingsFile != "" && m_UsersChosenSettingsFile != "")
+            {
+                m_Globals.SetpathToVariablesFile(m_LastSettingsFile);
+                m_Globals.SaveXMLVariablesFile();
+                m_Globals.SetpathToVariablesFile(m_UsersChosenSettingsFile);
+            }
         }
 
 
 
         private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            saveFileDialog_Variables.FileName = m_Globals.GetpathToVariablesFile();
+            m_UsersChosenSettingsFile = m_Globals.GetpathToVariablesFile();
+            saveFileDialog_Variables.FileName = m_UsersChosenSettingsFile;
             if (saveFileDialog_Variables.ShowDialog() == DialogResult.OK)
             {
-                m_Globals.SetpathToVariablesFile(saveFileDialog_Variables.FileName.ToString());
+                m_UsersChosenSettingsFile = saveFileDialog_Variables.FileName.ToString();
+                m_Globals.SetpathToVariablesFile(m_UsersChosenSettingsFile);
                 m_Globals.SaveXMLVariablesFile();
             }
+
+            if (m_LastSettingsFile != "" && m_UsersChosenSettingsFile != "")
+            {
+                m_Globals.SetpathToVariablesFile(m_LastSettingsFile);
+                m_Globals.SaveXMLVariablesFile();
+                m_Globals.SetpathToVariablesFile(m_UsersChosenSettingsFile);
+            } 
         }
 
 
@@ -694,18 +768,39 @@ namespace VideoSyncClient
 
         private void buttonTestSettings_Click(object sender, EventArgs e)
         {
-            String name = "testSettings";
+            String name = "testSettings_play";
             String blackScreenImagePath_png = AppDomain.CurrentDomain.BaseDirectory + @"\blackscreenimage.png  @Playtime: 2 seconds";
             String blackScreenImagePath_bmp = AppDomain.CurrentDomain.BaseDirectory + @"\blackscreenimage.bmp  @Playtime: 2 seconds";
             String details = blackScreenImagePath_bmp +"\r\n"+ blackScreenImagePath_png;
+            String message = name +"\n"+ details +"\n";
+            AppendToRichTextBoxHistoryResponses(message);
             CallParserProcessEvents(name, details);
         }
 
 
-
+        static private bool m_IsThreadRunning = false;
         private void CallParserProcessEvents (String name, String details)
         {
-            parser.ProcessEvents(name, details, m_Globals);
+            if (name.Contains("media_kill"))
+            {
+                m_Globals.m_ShouldRun = false;
+                KillMediaPlayers();
+            }
+            else if (name.Contains("_play"))
+            {
+                m_Globals.m_ShouldRun = true;
+                //parser.ProcessEvents(name, details);
+                Thread newThread = new Thread(delegate ()
+                {
+                    if (m_IsThreadRunning == false)
+                    {
+                        m_IsThreadRunning = true;
+                        parser.ProcessEvents(name, details);
+                        m_IsThreadRunning = false;
+                    }
+                });
+                newThread.Start();
+            }
         }
 
 
@@ -731,8 +826,14 @@ namespace VideoSyncClient
 
         private void button_KillBlackScreens_Click(object sender, EventArgs e)
         {
-            m_library.KillRunningProcess("vlc");
-            m_library.KillRunningProcess("MyMediaPlayer");
+            KillMediaPlayers();
+        }
+
+
+        private void KillMediaPlayers()
+        {
+            m_Globals.m_library.KillRunningProcess("vlc");
+            m_Globals.m_library.KillRunningProcess("MyMediaPlayer");
         }
 
 
@@ -740,6 +841,16 @@ namespace VideoSyncClient
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
             m_Globals.m_usePartialScreenSize = (checkBox_PartialScreen.CheckState == CheckState.Checked);
+        }
+
+        private void showToolPathsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            String toolList = "Temp Directory: "+ m_Globals.Get_tempPath() +"\n";
+            toolList += "VLC Path: " + m_Globals.Get_VLCPath() + "\n";
+            toolList += "MyMediaPlayer Path: " + m_Globals.Get_MyMediaPlayerPath() + "\n";
+            toolList += "Settings File: " + m_Globals.GetpathToVariablesFile() + "\n";
+            toolList += "Application Directory: " + AppDomain.CurrentDomain.BaseDirectory;
+            MessageBox.Show(toolList);
         }
     }
 }

@@ -17,7 +17,7 @@ namespace Library
         #endregion
 
         #region Attributes
-        private Library.LogFile logFile; //= new Library.LogFile("parserLog.txt");
+        public Library.LogFile logFile; //= new Library.LogFile("parserLog.txt");
         #endregion
 
         #region Enum
@@ -134,7 +134,7 @@ namespace Library
                     return -1;
                 }
                 var proc = new Process();
-                proc.StartInfo.FileName = command;
+                proc.StartInfo.FileName = @command;
                 proc.StartInfo.Arguments = " " + arguments;
                 proc.StartInfo.UseShellExecute = false;
                 proc.StartInfo.CreateNoWindow = true;

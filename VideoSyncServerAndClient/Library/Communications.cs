@@ -159,7 +159,7 @@ namespace Library
             catch (Exception Ex)
             {
                 //throw Ex;
-                MessageBox.Show(Ex.Message);
+                //MessageBox.Show(Ex.Message);
             }
             finally
             {
@@ -224,8 +224,19 @@ namespace Library
 
 
         public String EOMDelimiter = "EOM_ENDOFMESSAGE";
+        public bool m_semaphore = false;
         public String SendMessageToServer(String messageName, String messageContent)
         {
+            int delayLimit = 10;
+            for(int ii = 0; ii < delayLimit; ii++)
+            {
+                System.Threading.Thread.Sleep(10);
+                if(m_semaphore == false)
+                {
+                    break;
+                }
+            }
+            m_semaphore = true;
             String messageSent = "FAILED";
             try
             {
@@ -242,7 +253,7 @@ namespace Library
             {
                 MessageBox.Show(se.Message);
             }
-
+            m_semaphore = false;
             return messageSent;
         }
 

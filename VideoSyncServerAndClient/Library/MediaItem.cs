@@ -17,14 +17,16 @@ namespace Library
         private bool m_IsLocalCopyAvailable = false;
         public bool isFilePathValid = false;
         public bool isPlayTimeAssigned = false;
+        private Library1 m_library;
 
         private String m_tempPath = @"c:\temp\testcase objects\";
 
         private Classification m_classification = Classification.undef;
 
         // Regression test:  Library1Tests.cs::SetFilePathTest()
-        public MediaItem (int IdNumber, String filePath, String tempPath)
+        public MediaItem (int IdNumber, String filePath, String tempPath, Library1 libraryParameter)
         {
+            m_library = libraryParameter;
             m_IdNumber = IdNumber;
             SetFilePath(filePath);
             SetTempPath(tempPath);
@@ -206,7 +208,14 @@ namespace Library
                 String localCopyPath = @m_tempPath + filename;
                 try
                 {
-                    File.Copy(@filepath, @localCopyPath);
+                    if (m_library.TestFilePathExistance(@filepath))
+                    {
+                        File.Copy(@filepath, @localCopyPath);
+                        if(m_library.TestFilePathExistance(localCopyPath))
+                        {
+                            isFilePathValid = true;
+                        }
+                    }
                 }
                 catch (System.IO.FileNotFoundException fnfe)
                 {

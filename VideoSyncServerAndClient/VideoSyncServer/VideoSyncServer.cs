@@ -28,8 +28,10 @@ namespace VideoSyncServer
         private Label label7;
         private RichTextBox richTextBoxFromPublishers;
 		private int m_clientCount = 0;
-        
-        private Library1 m_library = new Library1();
+        private int m_clientsNotDonePlayList = 0;
+        private int m_clientsNotDoneFileCopying = 0;
+
+        //private Library1 m_library = new Library1();
         public Globals m_Globals = new Globals();
         private Button button_Play;
 
@@ -43,7 +45,17 @@ namespace VideoSyncServer
         private ToolStripMenuItem exitToolStripMenuItem;
         private SaveFileDialog saveFileDialog_Variables;
         private OpenFileDialog openFileDialog_Variables;
+        private Label label1;
+        private Label label_clientsNotDonePlayList;
+        private Label label_clientsNotDoneFileCopying;
+        private Label label8;
+        private Button button_KillBlackScreens;
         SimpleCommandLineParser cmdParser = new SimpleCommandLineParser();
+        private CheckBox checkBox_Repeat;
+        private ToolStripMenuItem toolsToolStripMenuItem;
+        private ToolStripMenuItem resetClientsPlayingToolStripMenuItem;
+        private bool m_Repeat = false;
+
 
         public VideoSyncServer(string[] args)
 		{
@@ -52,7 +64,7 @@ namespace VideoSyncServer
             cmdParser.Parse(args);
             ProcessCmdArgs();
 
-            textBoxIP.Text = m_library.GetLocalName();
+            textBoxIP.Text = m_Globals.m_library.GetLocalName();
 
             // React to the command line arguments that perform automation.
             if (isAutoConnectCmd)
@@ -93,6 +105,14 @@ namespace VideoSyncServer
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveFileDialog_Variables = new System.Windows.Forms.SaveFileDialog();
             this.openFileDialog_Variables = new System.Windows.Forms.OpenFileDialog();
+            this.label1 = new System.Windows.Forms.Label();
+            this.label_clientsNotDonePlayList = new System.Windows.Forms.Label();
+            this.label_clientsNotDoneFileCopying = new System.Windows.Forms.Label();
+            this.label8 = new System.Windows.Forms.Label();
+            this.button_KillBlackScreens = new System.Windows.Forms.Button();
+            this.checkBox_Repeat = new System.Windows.Forms.CheckBox();
+            this.toolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.resetClientsPlayingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -213,7 +233,8 @@ namespace VideoSyncServer
             // menuStrip1
             // 
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.fileToolStripMenuItem});
+            this.fileToolStripMenuItem,
+            this.toolsToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Size = new System.Drawing.Size(753, 24);
@@ -252,10 +273,88 @@ namespace VideoSyncServer
             this.openFileDialog_Variables.FileName = "data.xml";
             this.openFileDialog_Variables.Filter = "\"XML|*.xml|All files|*.*\"";
             // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(224, 442);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(95, 13);
+            this.label1.TabIndex = 24;
+            this.label1.Text = "Clients still Playing:";
+            // 
+            // label_clientsNotDonePlayList
+            // 
+            this.label_clientsNotDonePlayList.AutoSize = true;
+            this.label_clientsNotDonePlayList.Location = new System.Drawing.Point(332, 442);
+            this.label_clientsNotDonePlayList.Name = "label_clientsNotDonePlayList";
+            this.label_clientsNotDonePlayList.Size = new System.Drawing.Size(35, 13);
+            this.label_clientsNotDonePlayList.TabIndex = 25;
+            this.label_clientsNotDonePlayList.Text = "0";
+            // 
+            // label_clientsNotDoneFileCopying
+            // 
+            this.label_clientsNotDoneFileCopying.AutoSize = true;
+            this.label_clientsNotDoneFileCopying.Location = new System.Drawing.Point(332, 416);
+            this.label_clientsNotDoneFileCopying.Name = "label_clientsNotDoneFileCopying";
+            this.label_clientsNotDoneFileCopying.Size = new System.Drawing.Size(35, 13);
+            this.label_clientsNotDoneFileCopying.TabIndex = 27;
+            this.label_clientsNotDoneFileCopying.Text = "0";
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(224, 416);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(99, 13);
+            this.label8.TabIndex = 26;
+            this.label8.Text = "Clients still Copying:";
+            // 
+            // button_KillBlackScreens
+            // 
+            this.button_KillBlackScreens.Location = new System.Drawing.Point(566, 399);
+            this.button_KillBlackScreens.Name = "button_KillBlackScreens";
+            this.button_KillBlackScreens.Size = new System.Drawing.Size(175, 46);
+            this.button_KillBlackScreens.TabIndex = 28;
+            this.button_KillBlackScreens.Text = "Turn Off Media Players";
+            this.button_KillBlackScreens.UseVisualStyleBackColor = true;
+            this.button_KillBlackScreens.Click += new System.EventHandler(this.button_KillBlackScreens_Click);
+            // 
+            // checkBox_Repeat
+            // 
+            this.checkBox_Repeat.AutoSize = true;
+            this.checkBox_Repeat.Location = new System.Drawing.Point(227, 468);
+            this.checkBox_Repeat.Name = "checkBox_Repeat";
+            this.checkBox_Repeat.Size = new System.Drawing.Size(61, 17);
+            this.checkBox_Repeat.TabIndex = 29;
+            this.checkBox_Repeat.Text = "Repeat";
+            this.checkBox_Repeat.UseVisualStyleBackColor = true;
+            this.checkBox_Repeat.CheckedChanged += new System.EventHandler(this.checkBox_Repeat_CheckedChanged);
+            // 
+            // toolsToolStripMenuItem
+            // 
+            this.toolsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.resetClientsPlayingToolStripMenuItem});
+            this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
+            this.toolsToolStripMenuItem.Size = new System.Drawing.Size(48, 20);
+            this.toolsToolStripMenuItem.Text = "Tools";
+            // 
+            // resetClientsPlayingToolStripMenuItem
+            // 
+            this.resetClientsPlayingToolStripMenuItem.Name = "resetClientsPlayingToolStripMenuItem";
+            this.resetClientsPlayingToolStripMenuItem.Size = new System.Drawing.Size(183, 22);
+            this.resetClientsPlayingToolStripMenuItem.Text = "Reset Clients Playing";
+            this.resetClientsPlayingToolStripMenuItem.Click += new System.EventHandler(this.resetClientsPlayingToolStripMenuItem_Click);
+            // 
             // VideoSyncServer
             // 
             this.AutoScaleBaseSize = new System.Drawing.Size(5, 13);
             this.ClientSize = new System.Drawing.Size(753, 508);
+            this.Controls.Add(this.checkBox_Repeat);
+            this.Controls.Add(this.button_KillBlackScreens);
+            this.Controls.Add(this.label_clientsNotDoneFileCopying);
+            this.Controls.Add(this.label8);
+            this.Controls.Add(this.label_clientsNotDonePlayList);
+            this.Controls.Add(this.label1);
             this.Controls.Add(this.menuStrip1);
             this.Controls.Add(this.button1_TurnOffVideoSync);
             this.Controls.Add(this.label4);
@@ -479,6 +578,10 @@ namespace VideoSyncServer
             Communications.EventData receivedEventData = m_Globals.m_communications.DeserializeReceivedEventData(commMessage);
 
             if (receivedEventData.Details == null || receivedEventData.Details == "")
+            {
+                return;
+            }
+            if (receivedEventData.Name.Contains("client"))
             {   // Subscribers send NO details.  We assume this is part of the design spec.
                 String appendedMessage = Get_richTextBoxFromSubscribers() + "\n\n " + ReceivedMsg.GetText();
                 Set_richTextBoxFromSubscribers(appendedMessage);
@@ -543,14 +646,21 @@ namespace VideoSyncServer
         private String Get_richTextBoxFromSubscribers()
         {
             CheckForIllegalCrossThreadCalls = false;  // Defeats:  Control 'textBoxMsg' accessed from a thread other than the thread it was created on.
-            String retval;
+            String retval = "";
 
             // InvokeRequired required compares the thread ID of the calling thread to the thread ID of the creating
             // thread.  If these threads are different, it returns true.  
             if (this.richTextBoxFromSubscribers.InvokeRequired)
             {
-                VoidArgReturningStringDelegate d = new VoidArgReturningStringDelegate(Get_richTextBoxFromSubscribers);
-                retval = (String)this.Invoke(d, new object[] { });
+                try
+                {
+                    VoidArgReturningStringDelegate d = new VoidArgReturningStringDelegate(Get_richTextBoxFromSubscribers);
+                    retval = (String)this.Invoke(d, new object[] { });
+                }
+                catch (System.Exception se)
+                {
+
+                }
             }
             else
             {
@@ -602,8 +712,44 @@ namespace VideoSyncServer
         }
 
 
-        
-        private Communications.EventData m_lastBroadcastEventData;
+
+        private void Set_label_clientsNotDonePlayList(string text)
+        {
+            // InvokeRequired required compares the thread ID of the calling thread to the thread ID of the creating 
+            // thread.  If these threads are different, it returns true.  
+            if (this.label_clientsNotDonePlayList.InvokeRequired)
+            {
+                StringArgReturningVoidDelegate d = new StringArgReturningVoidDelegate(Set_label_clientsNotDonePlayList);
+                this.Invoke(d, new object[] { text });
+            }
+            else
+            {
+                this.label_clientsNotDonePlayList.Text = text;
+            }
+        }
+
+
+
+
+        private void Set_label_clientsNotDoneFileCopying(string text)
+        {
+            // InvokeRequired required compares the thread ID of the calling thread to the thread ID of the creating 
+            // thread.  If these threads are different, it returns true.  
+            if (this.label_clientsNotDoneFileCopying.InvokeRequired)
+            {
+                StringArgReturningVoidDelegate d = new StringArgReturningVoidDelegate(Set_label_clientsNotDoneFileCopying);
+                this.Invoke(d, new object[] { text });
+            }
+            else
+            {
+                this.label_clientsNotDoneFileCopying.Text = text;
+            }
+        }
+
+
+
+
+        private Communications.EventData m_lastPlayList;
         private bool isLastBroadcastEventDataSet = false;
         private void AnalyseRequestFromPublisher(EndPoint endPoint, Communications.EventData receivedEventData)
         {
@@ -625,10 +771,12 @@ namespace VideoSyncServer
                     publisher.Events.Add(receivedEventData);
                     eventAdded = true;
 
-                    if (receivedEventData.Name.Equals("playlist"))
+                    if (receivedEventData.Name.Contains("playlist"))
                     {
-                        m_lastBroadcastEventData = receivedEventData;
+                        m_lastPlayList = receivedEventData;
                         isLastBroadcastEventDataSet = true;
+                        m_clientsNotDoneFileCopying = data.subscribersIPEndPoints.Count;
+                        Set_label_clientsNotDoneFileCopying(m_clientsNotDoneFileCopying.ToString());
                         GoCallAllSubscribers(receivedEventData);
                     }
                 }
@@ -646,17 +794,19 @@ namespace VideoSyncServer
             {
                 ignorePriorEntry = true;
                 data.AddPublisher((IPEndPoint)endPoint, ignorePriorEntry);
-                isLastBroadcastEventDataSet = false;
+                //isLastBroadcastEventDataSet = false;
             }
 
-            if (receivedEventData.Name.Equals("playlist"))
+            if (receivedEventData.Name.Contains("playlist"))
             {
                 data.AddPublisher((IPEndPoint)endPoint, ignorePriorEntry);
-                m_lastBroadcastEventData = receivedEventData;
+                m_lastPlayList = receivedEventData;
                 isLastBroadcastEventDataSet = true;
 
                 if (isAutoPlayCmd)
                 {
+                    m_clientsNotDoneFileCopying = data.subscribersIPEndPoints.Count;
+                    Set_label_clientsNotDoneFileCopying(m_clientsNotDoneFileCopying.ToString());
                     GoCallAllSubscribers(receivedEventData);
                     SendPlayCommand();
                 }
@@ -671,6 +821,17 @@ namespace VideoSyncServer
             if (eventData.Name.Contains("connect"))
             {
                 ignorePriorEntry = true;
+            }
+            else if (eventData.Name.Contains("playlist_done"))
+            {
+                m_clientsNotDonePlayList--;
+                Set_label_clientsNotDonePlayList( m_clientsNotDonePlayList.ToString());
+                EvaluateRepeat();
+            }
+            else if (eventData.Name.Contains("file_copy_done"))
+            {
+                m_clientsNotDoneFileCopying--;
+                Set_label_clientsNotDoneFileCopying(m_clientsNotDoneFileCopying.ToString());
             }
             data.AddSubscriber((IPEndPoint)subscriberEndPoint, ignorePriorEntry);
 
@@ -771,14 +932,29 @@ namespace VideoSyncServer
         { 
             if (isLastBroadcastEventDataSet)
             {
-                Communications.EventData playLastEventsPlayList = m_lastBroadcastEventData;
-                playLastEventsPlayList.Name = "play";
+                Communications.EventData playLastEventsPlayList = m_lastPlayList;
+                playLastEventsPlayList.Name = "server_play";
                 playLastEventsPlayList.Details = "";
+                m_clientsNotDonePlayList = data.subscribersIPEndPoints.Count;
+                Set_label_clientsNotDonePlayList (m_clientsNotDonePlayList.ToString());
                 GoCallAllSubscribers(playLastEventsPlayList);
+                
                 //MessageBox.Show("Sending play command.");
             }
         }
 
+
+
+        private void SendMediaKillCommand()
+        {
+            if (isLastBroadcastEventDataSet)
+            {
+                Communications.EventData lastEventData = m_lastPlayList;
+                lastEventData.Name = "server_media_kill";
+                lastEventData.Details = "";
+                GoCallAllSubscribers(lastEventData);
+            }
+        }
 
 
         private void SocketServer_FormClosing(object sender, FormClosingEventArgs e)
@@ -807,15 +983,17 @@ namespace VideoSyncServer
 
         private void button1_TurnOffVideoSync_Click(object sender, EventArgs e)
         {
-            m_library.KillVideoSyncProcesses();
+            SendMediaKillCommand();
+            System.Threading.Thread.Sleep(millisecondsTimeout: 100);
+            m_Globals.m_library.KillVideoSyncProcesses();
         }
 
 
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            openFileDialog_Variables.FileName = "data.xml";
+            openFileDialog_Variables.FileName = "*setup.xml";
             openFileDialog_Variables.InitialDirectory = null;  // There's a stackoverflow answer that suggests this is necessary.
-            openFileDialog_Variables.InitialDirectory = @"c:\temp\";
+            openFileDialog_Variables.InitialDirectory = @"c:\utils\Video Sync 2\";
             DialogResult result = openFileDialog_Variables.ShowDialog();
 
             if (result == DialogResult.OK)
@@ -829,6 +1007,47 @@ namespace VideoSyncServer
         private void AssignVariablesInControls()
         {
             textBoxIP.Text = m_Globals.m_communications.GetServerName();
+        }
+
+        private void button_KillBlackScreens_Click(object sender, EventArgs e)
+        {
+            SendMediaKillCommand();
+        }
+
+        private void checkBox_Repeat_CheckedChanged(object sender, EventArgs e)
+        {
+            if(checkBox_Repeat.Checked)
+            {
+                m_Repeat = true;
+            }
+            else
+            {
+                m_Repeat = false;
+            }
+        }
+
+
+        private void EvaluateRepeat()
+        {
+            if( m_Repeat && (m_clientsNotDonePlayList <= 0) )
+            {   // m_clientsNotDone is a negative value when you use the reset button.
+                if(isLastBroadcastEventDataSet)
+                {
+                    GoCallAllSubscribers(m_lastPlayList);
+                }
+                System.Threading.Thread.Sleep(1000);
+                //SendMediaKillCommand();  // Don't do this.
+                SendPlayCommand();
+            }
+        }
+
+        private void resetClientsPlayingToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            m_clientsNotDoneFileCopying = 0;
+            Set_label_clientsNotDoneFileCopying( m_clientsNotDoneFileCopying.ToString() );
+            m_clientsNotDonePlayList = 0;
+            Set_label_clientsNotDonePlayList( m_clientsNotDonePlayList.ToString() );
+            EvaluateRepeat();
         }
     }
 }

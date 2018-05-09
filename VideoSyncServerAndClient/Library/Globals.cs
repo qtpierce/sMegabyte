@@ -12,16 +12,26 @@ namespace Library
         private String m_MyMediaPlayerPath = "";
         public bool isMyMediaPlayerPathSet = false;
         public bool m_usePartialScreenSize = false;
+        public bool m_ShouldRun = true;
+        public String m_ApplicationDirectory;
+        public String m_EscapedApplicationDirectory;
+            
 
-        
-        private Library1 m_library = new Library1();
+
+        public Library1 m_library = new Library1();
         private XMLDataStructure m_xmlDataStructure = new XMLDataStructure();
         public Communications m_communications = new Communications();
 
 
+        public Globals()
+        {
+            m_ApplicationDirectory = AppDomain.CurrentDomain.BaseDirectory;
 
-        // Regression test:  VideoSyncClient1Tests.cs::Set_tempPathTest() and all the other specific tests too.
-        private bool SetArbitraryFilePath (String newFilePath, ref String globalToSet, ref bool globalIsSet)
+        }
+
+
+    // Regression test:  VideoSyncClient1Tests.cs::Set_tempPathTest() and all the other specific tests too.
+    private bool SetArbitraryFilePath (String newFilePath, ref String globalToSet, ref bool globalIsSet)
         {
             bool didSucceed = false;
 

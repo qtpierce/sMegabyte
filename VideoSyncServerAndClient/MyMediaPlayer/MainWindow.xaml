@@ -10,7 +10,7 @@
             <RowDefinition Height="320*"/>
             <RowDefinition Height="50*"/>
         </Grid.RowDefinitions>
-        <MediaElement x:Name="MediaPlayer" Grid.RowSpan="2" LoadedBehavior="Manual" MediaEnded="MediaPlayer_MediaEnded" Cursor="None" AllowDrop="True"  />
+        <MediaElement x:Name="MediaPlayer" Grid.RowSpan="2" LoadedBehavior="Manual" MediaEnded="MediaPlayer_MediaEnded" Cursor="None" AllowDrop="True" MouseLeftButtonDown="MediaPlayer_MouseLeftButtonDown"  />
         <Label x:Name="label_Title" Content="" HorizontalAlignment="Left" Margin="10,332,0,0" VerticalAlignment="Top" Height="130" Grid.RowSpan="2" Width="612" FontSize="28" TextOptions.TextFormattingMode="Display" Foreground="White" />
     </Grid>
 </Window>

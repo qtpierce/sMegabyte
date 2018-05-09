@@ -10,6 +10,7 @@ namespace MyMediaPlayer
     {
         private FileProperties m_fileProperties = new FileProperties();
         private PlayActions m_playActions = new PlayActions();
+        private int CountMouseLeftButtonDownPresses = 0;
        
 
         public MainWindow()
@@ -124,6 +125,23 @@ namespace MyMediaPlayer
 
             WindowStartupLocation = System.Windows.WindowStartupLocation.Manual;
             this.WindowState = WindowState.Normal;
+        }
+
+
+        private void MediaPlayer_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            CountMouseLeftButtonDownPresses++;
+            if(CountMouseLeftButtonDownPresses % 2 == 0)
+            {   // Toggle WindowState between maximized and normal (small).
+                if (this.WindowState == WindowState.Maximized)
+                {
+                    this.WindowState = WindowState.Normal;
+                }
+                else
+                {
+                    this.WindowState = WindowState.Maximized;
+                }
+            }
         }
     }
 }

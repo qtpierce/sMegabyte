@@ -7,29 +7,31 @@ namespace VideoSyncClient
 {
     public class Parser
     {
-        public Parser()
-        {
 
+        public static Globals m_Globals;
+        public Parser(Globals Globals_parameter)
+        {
+            m_Globals = Globals_parameter;
+            logFile = m_Globals.m_library.logFile;
         }
 
 
-        private Library1 m_library = new Library1();
-        private Library.LogFile logFile = new Library.LogFile("parserLog.txt");
-
+        //private Library1 m_library = new Library1();
+        private Library.LogFile logFile;
+        
         private VLCPlayer vlcPlayer = new VLCPlayer();
         private MyMediaPlayer myMediaPlayer = new MyMediaPlayer();
         
-        private String m_blackScreenImagePath = "\"c:\\temp\\testcase objects\\blackscreenimage.bmp\"";
-        //private bool m_usePartialScreenSize = true;  // VLC's window sizing is broken in my version.  So this code is not being finished.
 
-
-        private void MediaItemPlay(MediaItem newMediaItem, Globals globals)
+        private void MediaItemPlay(MediaItem newMediaItem)
         {
             String filepath = newMediaItem.GetFilePath();
             if (newMediaItem.CheckIsLocalCopyAvailable(filepath) == true)
             {
                 filepath = newMediaItem.GetLocalCopyFilePath();
             }
+
+            newMediaItem.isFilePathValid = m_Globals.m_library.TestFilePathExistance(@filepath);
 
             if (!newMediaItem.isFilePathValid)
             {   // If the filepath is not valid, then just return.
@@ -49,7 +51,7 @@ namespace VideoSyncClient
             String VLCCompatibilityList = vlcPlayer.GetMediaCompatible();
             if (VLCCompatibilityList.Contains(fileExtension))
             {
-                MediaPlayerPath = vlcPlayer.GetExecutablePath();
+                MediaPlayerPath = vlcPlayer.GetExecutablePath(m_Globals);
                 playArguments = vlcPlayer.GetPlayArguments(escapedFilepath);
                 playTime = vlcPlayer.GetPlayTimeArgument(playTime) + " " + vlcPlayer.GetImageDurationArgument(playTime);
                 fullScreenArgument = vlcPlayer.GetFullScreenArgument();
@@ -58,7 +60,7 @@ namespace VideoSyncClient
             }
             else
             {
-                MediaPlayerPath = myMediaPlayer.GetExecutablePath();
+                MediaPlayerPath = myMediaPlayer.GetExecutablePath(m_Globals);
                 playArguments = myMediaPlayer.GetPlayArguments(escapedFilepath);
                 playTime = myMediaPlayer.GetPlayTimeArgument(playTime);
                 fullScreenArgument = myMediaPlayer.GetFullScreenArgument();
@@ -71,7 +73,7 @@ namespace VideoSyncClient
                 playArguments += " " + playTime;
             }
 
-            if (globals.m_usePartialScreenSize)
+            if (m_Globals.m_usePartialScreenSize)
             {   // 1.  Assume a default scalar of 0.4.  Because we have no easy way to determining video dimensions.
                 double scalar = 0.4;
                 if (newMediaItem.GetClassification() == MediaItem.Classification.image)
@@ -93,17 +95,15 @@ namespace VideoSyncClient
             }
             else
             {
-                m_library.MoveMouseOffScreen();
+                m_Globals.m_library.MoveMouseOffScreen();
             }
 
-            //MessageBox.Show(MediaPlayerPath +" "+ playArguments);
-            m_library.ExecuteCommand(MediaPlayerPath, playArguments);
-
+            m_Globals.m_library.ExecuteCommand(MediaPlayerPath, playArguments);
         }
          
 
 
-        private void MediaItemCopy (MediaItem newMediaItem, Globals globals)
+        private void MediaItemCopy (MediaItem newMediaItem)
         {
             String filepath = newMediaItem.GetFilePath();
             
@@ -112,34 +112,34 @@ namespace VideoSyncClient
 
 
         private static String m_playListDetails = "";
-        public void ProcessEvents(String name, String details, Globals globals)
+
+        public void ProcessEvents(String name, String details)
         {
-            String tempPath = globals.Get_tempPath();
+            String tempPath = m_Globals.Get_tempPath();
             logFile.WriteToLog("\r\n\r\n-I-  name: "+ name +"details (playlist): \r\n"+ details);
             details.Trim();
 
-            //MediaPlayer blackScreenPlayer = vlcPlayer;
             MediaPlayer blackScreenPlayer = myMediaPlayer;
 
-            if (name.Equals("playlist"))
+            if (name.Contains("playlist"))
             {
                 m_playListDetails = details;
-                m_library.SetStateFile(Library1.State.copying);
+                m_Globals.m_library.SetStateFile(Library1.State.copying);
             }
 
-            if (name.Equals("play"))
+            if (name.Equals("server_play"))
             {
                 details = m_playListDetails;
-                m_library.SetStateFile(Library1.State.playing);
-                if (!globals.m_usePartialScreenSize)
+                m_Globals.m_library.SetStateFile(Library1.State.playing);
+                if (!m_Globals.m_usePartialScreenSize)
                 {
                     int intentionalDelayToKeepExecutionsInOrder = 1000;
-                    m_library.ExecuteCommand_NoWait(blackScreenPlayer.GetExecutablePath(), blackScreenPlayer.GetBlackScreenPlayArguments(m_blackScreenImagePath));
+                    m_Globals.m_library.ExecuteCommand_NoWait(blackScreenPlayer.GetExecutablePath(m_Globals), blackScreenPlayer.GetBlackScreenPlayArguments(blackScreenPlayer.GetBlackScreenImagePath()));
                     System.Threading.Thread.Sleep(intentionalDelayToKeepExecutionsInOrder);
                 }
             }
 
-            if (name.Equals("play") && String.IsNullOrEmpty(m_playListDetails))
+            if (name.Contains("playlist") && String.IsNullOrEmpty(m_playListDetails))
             {
                 MessageBox.Show("The playlist variable was empty.  Please send a playlist first.");
                 return;
@@ -149,6 +149,10 @@ namespace VideoSyncClient
             string[] lines = Regex.Split(details, "[\r\n]+");
             foreach (String mediaItem in lines)
             {
+                if(m_Globals.m_ShouldRun == false)
+                {
+                    continue;
+                }
                 if (String.IsNullOrEmpty(mediaItem))
                 {
                     // Empty strings happen at the last \n of the details.
@@ -156,7 +160,7 @@ namespace VideoSyncClient
                 }
                 else
                 {
-                    MediaItem newMediaItem = new MediaItem(CountMediaItems, "", tempPath);
+                    MediaItem newMediaItem = new MediaItem(CountMediaItems, "", tempPath, m_Globals.m_library);
                     CountMediaItems++;
                         
                     String[] mediaItemPieces = Regex.Split(mediaItem, newMediaItem.delimiter_Playtime);
@@ -186,20 +190,52 @@ namespace VideoSyncClient
                     }
 
 
-                    if (name.Equals("playlist"))
+                    if (name.Contains("playlist"))
                     {
-                        MediaItemCopy(newMediaItem, globals);
+                        MediaItemCopy(newMediaItem);
                     }
-                    else if (name.Equals("play") || name.Equals("testSettings"))
+                    else if (name.Equals("server_play") || name.Contains("testSettings"))
                     {
-                        MediaItemPlay(newMediaItem, globals);
+                        MediaItemPlay(newMediaItem);
                     }
 
                 }
             }
 
             // Done with the loop.
-            m_library.SetStateFile(Library1.State.not_busy);
+            m_Globals.m_library.SetStateFile(Library1.State.not_busy);
+
+            if (name.Contains("playlist"))
+            {
+                SendFileCopyDoneMessageToServer();
+            }
+            else if (name.Equals("server_play") || name.Contains("testSettings"))
+            {
+                SendPlaylistDoneMessageToServer();
+            }
+            
+        }
+
+
+
+        public void SendFileCopyDoneMessageToServer()
+        {
+            SendMessageToServer("client_file_copy_done", "null");
+        }
+
+
+        public void SendPlaylistDoneMessageToServer()
+        {
+            SendMessageToServer("client_playlist_done", "null");
+        }
+
+
+
+        void SendMessageToServer(String messageName, String messageContent)
+        {
+            String messageSent = "";
+            messageSent = m_Globals.m_communications.SendMessageToServer(messageName, messageContent);
+            logFile.WriteToLog("-I-  Sending message: " + messageSent);
         }
     }
 }

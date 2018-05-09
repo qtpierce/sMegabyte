@@ -1,11 +1,11 @@
-﻿using System;
+﻿using Library;
+using System;
 
 namespace VideoSyncClient
 {
     public class MediaPlayer
     {
         protected String m_name;
-        protected String m_executablePath;
         protected String m_playArguments;
         protected String m_blackScreenPlayArguments;
         protected String m_playTimeArgument;
@@ -15,6 +15,7 @@ namespace VideoSyncClient
         protected String m_fullScreenArgument;  
         protected String m_partialScreenArgument;  // VLC's window sizing is broken in my version.  So this code is not being finished.
         protected String m_zoomPlaceholder;
+        protected String m_blackScreenImagePath;
 
 
         public String GetName ()
@@ -23,15 +24,42 @@ namespace VideoSyncClient
         }
 
 
-        public void SetExecutablePath (String path)
+        // TODO:  take Globals out of the parameter list and make it a static member object.
+        public void SetExecutablePath (String path, Globals globals)
         {
-            m_executablePath = path;
+            if (m_name.Equals("MyMediaPlayer"))
+            {
+                globals.Set_MyMediaPlayerPath(path);
+            }
+            else if (m_name.Equals("vlc"))
+            {
+                globals.Set_VLCPath(path);
+            }
+            else
+            {
+                // TODO: issue an exception here because the name is unknown.
+            }
         }
 
 
-        public String GetExecutablePath()
+        public String GetExecutablePath(Globals globals)
         {
-            return m_executablePath;
+            if (m_name.Equals("MyMediaPlayer"))
+            {
+                if (globals.isMyMediaPlayerPathSet == true)
+                {
+                    return globals.Get_MyMediaPlayerPath();
+                }
+            }
+            else if (m_name.Equals("vlc"))
+            {
+                if (globals.isVLCPathSet == true)
+                {
+                    return globals.Get_VLCPath();
+                }
+            }
+
+            return "";
         }
 
 
@@ -43,7 +71,7 @@ namespace VideoSyncClient
 
         public String GetBlackScreenPlayArguments(String fileToPlay)
         {
-            return m_blackScreenPlayArguments + fileToPlay;
+            return m_blackScreenPlayArguments + "\""+ fileToPlay +"\"";
         }
 
 
@@ -89,6 +117,13 @@ namespace VideoSyncClient
             return m_zoomPlaceholder;
         }
 
+
+        
+        public String GetBlackScreenImagePath()
+        {
+            return m_blackScreenImagePath;
+        }
+
     }
 
 
@@ -97,7 +132,6 @@ namespace VideoSyncClient
         public MyMediaPlayer ()
         {
             m_name = "MyMediaPlayer";
-            m_executablePath = @"c:\temp\MyMediaPlayer.exe";
             m_fullScreenArgument = "-fullscreen";
             m_playArguments = m_fullScreenArgument + " -file ";
             m_blackScreenPlayArguments = m_playArguments;
@@ -107,6 +141,7 @@ namespace VideoSyncClient
             m_mediaNotCompatible = ".m4v .mov .ogg .ogv .wav";
             m_zoomPlaceholder = "ZOOMPLACEHOLDER";
             m_partialScreenArgument = "--zoom=" + m_zoomPlaceholder;
+            m_blackScreenImagePath = AppDomain.CurrentDomain.BaseDirectory + @"\blackscreenimage.bmp";
         }
     }
 
@@ -116,16 +151,16 @@ namespace VideoSyncClient
         public VLCPlayer ()
         {
             m_name = "vlc";
-            m_executablePath = @"c:\utils\VideoLan\VLC\vlc.exe";
             m_fullScreenArgument = "--fullscreen --no-video-title-show";
             m_playArguments = "--play-and-exit "+ m_fullScreenArgument +" --disable-screensaver --video-on-top --intf dummy --dummy-quiet file:///";
-            m_blackScreenPlayArguments = "--image-duration=-1 "+ m_fullScreenArgument +" --no-video-title-show --disable-screensaver --video-on-top --intf dummy --dummy-quiet file:///";
+            m_blackScreenPlayArguments = "--image-duration=1 "+ m_fullScreenArgument +" --no-video-title-show --disable-screensaver  --intf dummy --dummy-quiet file:///";
             m_playTimeArgument = "--run-time=";
             m_imageDurationArgument = "--image-duration=";
             m_mediaCompatible = ".jpg .m4v .mov .mp3 .mp4 .ogg .ogv .png .wav";
             m_mediaNotCompatible = ".bmp .gif";
             m_zoomPlaceholder = "ZOOMPLACEHOLDER";
             m_partialScreenArgument = "--video-title-show --video-title-timeout=2147483646 --zoom=" + m_zoomPlaceholder;
+            m_blackScreenImagePath = AppDomain.CurrentDomain.BaseDirectory + @"\blackscreenimage.png";
         }
     }
 }
